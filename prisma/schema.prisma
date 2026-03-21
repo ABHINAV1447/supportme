@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  clerkId      String   @unique
+  username     String   @unique
+  email        String   @unique
+  name         String?
+  bio          String?
+  profileImage String?
+  upiId        String?
+  bannerImage  String?
+  socialLinks  Json?   // Better support in PostgreSQL
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products     Product[]
+  receivedPayments Payment[] @relation("Recipient")
+  madePayments     Payment[] @relation("Sender")
+  goals        Goal[]
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  price        Int      // In paise (100 = ₹1) for accuracy
+  fileUrl      String
+  thumbnailUrl String?
+  
+  creatorId    String
+  creator      User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  payments     Payment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// SQLite doesn't support enums, using strings with validation in code
+// PaymentStatus: PENDING, SUCCESS, FAILED
+// PaymentType: SUPPORT, PRODUCT
+
+model Payment {
+  id               String        @id @default(cuid())
+  amount           Int           // In paise
+  status           String        @default("PENDING")
+  type             String
+  razorpayOrderId  String?       @unique
+  razorpayPaymentId String?      @unique
+  razorpaySignature String?
+  
+  message          String?       // Personal message from supporter
+  supporterName    String?       // Display name of supporter
+  
+  senderId         String?
+  sender           User?         @relation("Sender", fields: [senderId], references: [id])
+  
+  recipientId      String
+  recipient        User          @relation("Recipient", fields: [recipientId], references: [id])
+  
+  productId        String?
+  product          Product?      @relation(fields: [productId], references: [id])
+  
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  title       String
+  target      Int      // In paise
+  current     Int      @default(0) // In paise
+  
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
