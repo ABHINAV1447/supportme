@@ -126,7 +126,7 @@ export default async function PayoutsPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-orange-600 text-sm">+₹{payment.amount / 100}</p>
-                      <Badge variant="ghost" className="text-[10px] uppercase text-emerald-500 h-5 px-1.5">
+                      <Badge variant="outline" className="text-[10px] uppercase text-emerald-500 h-5 px-1.5 border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20">
                         Success
                       </Badge>
                     </div>
