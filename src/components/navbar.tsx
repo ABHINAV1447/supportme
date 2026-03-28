@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { UserButton, SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { UserButton, SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Coffee, Sparkles } from "lucide-react";
+import { Menu, X, Coffee, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import axios from "axios";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,13 +72,7 @@ export function Navbar() {
               <Link href="/dashboard">
                 <Button variant="ghost" className="font-black hover:bg-secondary/50 rounded-full px-5 h-9 text-xs">Dashboard</Button>
               </Link>
-              <UserButton afterSignOutUrl="/" 
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "h-8 w-8 border-2 border-primary/20 hover:border-primary transition-colors"
-                  }
-                }}
-              />
+              <UserAvatar />
             </SignedIn>
             <ModeToggle />
           </div>
@@ -134,6 +129,52 @@ export function Navbar() {
   );
 }
 
+
+function UserAvatar() {
+  const { user } = useUser();
+  const [dbUser, setDbUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get("/api/creator/profile");
+        setDbUser(res.data);
+      } catch (error) {
+        console.error("Failed to fetch profile in navbar", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const profileImage = dbUser?.profileImage || user?.imageUrl;
+
+  return (
+    <div className="relative group">
+      <div className="absolute inset-0 opacity-0">
+        <UserButton 
+          afterSignOutUrl="/"
+          appearance={{
+            elements: {
+              userButtonAvatarBox: "h-8 w-8",
+              userButtonTrigger: "h-8 w-8"
+            }
+          }}
+        />
+      </div>
+      <img 
+        src={profileImage} 
+        alt="Profile" 
+        className="h-8 w-8 rounded-full border-2 border-primary/20 hover:border-primary transition-all cursor-pointer object-cover shadow-sm group-hover:scale-105 pointer-events-none"
+      />
+    </div>
+  );
+}
 
 function SignUpButton({ children, mode }: { children: React.ReactNode, mode?: "modal" | "redirect" }) {
   // Simple wrapper since Clerk's SignUpButton doesn't always accept children in older versions
