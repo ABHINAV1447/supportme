@@ -1,8 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { v4 as uuidv4 } from "uuid";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req: Request) {
   try {
@@ -19,20 +24,25 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create a unique filename
-    const filename = `${uuidv4()}-${file.name.replace(/\s+/g, "-")}`;
-    const uploadDir = join(process.cwd(), "public/uploads");
-    
-    // Ensure directory exists (mkdir is usually handled by dev server restart or manual creation)
-    // Actually, I'll use a simpler approach for now or assume public/uploads exists
-    const path = join(uploadDir, filename);
-    await writeFile(path, buffer);
+    // Upload to Cloudinary using a stream
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "supportme",
+          resource_type: "auto", // Automatically detect if it's an image or a raw file
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(buffer);
+    }) as any;
 
-    const fileUrl = `/uploads/${filename}`;
-
-    return NextResponse.json({ url: fileUrl });
+    return NextResponse.json({ url: result.secure_url });
   } catch (error) {
     console.error("[UPLOAD_API]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
+
