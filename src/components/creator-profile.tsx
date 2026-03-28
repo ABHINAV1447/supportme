@@ -87,6 +87,12 @@ export function CreatorProfile({ creator }: CreatorProfileProps) {
     }
   };
 
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    alert("🔗 Profile link copied to clipboard!");
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-10 px-4">
       {/* Profile Header section */}
@@ -129,7 +135,11 @@ export function CreatorProfile({ creator }: CreatorProfileProps) {
             </div>
             
             <div className="flex gap-3">
-              <Button variant="outline" className="rounded-full gap-2 font-black px-6 h-11 border-2 text-sm transition-all">
+              <Button 
+                onClick={handleShare}
+                variant="outline" 
+                className="rounded-full gap-2 font-black px-6 h-11 border-2 text-sm transition-all hover:bg-primary hover:text-white"
+              >
                 <Share2 className="h-4 w-4" /> Share
               </Button>
             </div>
