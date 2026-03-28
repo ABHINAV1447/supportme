@@ -2,17 +2,23 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
+
+    // Ensure Cloudinary is configured at runtime
+    cloudinary.config({
+      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    if (!process.env.CLOUDINARY_API_SECRET) {
+      console.error("CRITICAL: CLOUDINARY_API_SECRET is missing from environment variables.");
+      return NextResponse.json({ error: "Missing Cloudinary secret on server" }, { status: 500 });
+    }
+
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
