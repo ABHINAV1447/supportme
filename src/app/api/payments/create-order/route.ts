@@ -3,10 +3,18 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Lazy initialization of Razorpay to avoid build-time crashes with missing keys
+const getRazorpay = () => {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  
+  if (!keyId || keyId.includes("placeholder")) return null;
+  
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret!,
+  });
+};
 
 export async function POST(req: Request) {
   try {
@@ -64,9 +72,14 @@ export async function POST(req: Request) {
       receipt: `receipt_${Date.now()}`,
     };
 
+    const rzp = getRazorpay();
+    if (!rzp) {
+      return new NextResponse("Razorpay configuration is missing or invalid", { status: 500 });
+    }
+
     let order;
     try {
-      order = await razorpay.orders.create(options);
+      order = await rzp.orders.create(options);
     } catch (rzpError: any) {
       console.error("Razorpay Order Creation Failed:", rzpError);
       return new NextResponse(`Razorpay Error: ${rzpError.description || rzpError.message || "Failed to create order"}`, { status: 500 });
