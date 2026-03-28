@@ -95,9 +95,10 @@ export function ProfileSettingsForm({ creator }: { creator: any }) {
                       const res = await axios.post("/api/upload", formData);
                       form.setValue("profileImage", res.data.url);
                       alert("📸 Photo uploaded! Now click 'Update Portfolio' to save.");
-                    } catch (error) {
+                    } catch (error: any) {
+                      const errorMessage = error?.response?.data?.error || "Unknown upload error";
                       console.error("Upload failed", error);
-                      alert("❌ Failed to upload photo. Check your Cloudinary keys.");
+                      alert(`❌ Upload Failed: ${errorMessage}`);
                     } finally {
                       setIsUploadingPhoto(false);
                     }

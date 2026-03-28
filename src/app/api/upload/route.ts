@@ -40,9 +40,11 @@ export async function POST(req: Request) {
     }) as any;
 
     return NextResponse.json({ url: result.secure_url });
-  } catch (error) {
-    console.error("[UPLOAD_API]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+  } catch (error: any) {
+    console.error("[UPLOAD_API_ERROR]", error);
+    return NextResponse.json(
+      { error: error?.message || "Unknown upload error" },
+      { status: 500 }
+    );
   }
 }
-

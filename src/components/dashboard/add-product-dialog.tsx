@@ -78,8 +78,10 @@ export function AddProductDialog() {
       setIsOpen(false);
       form.reset();
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
       console.error("Failed to add product", error);
+      alert(`❌ Failed to add product: ${errorMessage}`);
     } finally {
       setIsUploading(false);
     }
