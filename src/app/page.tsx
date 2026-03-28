@@ -46,7 +46,7 @@ export default function Home() {
             className="text-5xl md:text-7xl font-black tracking-tight leading-[0.95] text-foreground"
           >
             Monetize your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-500 to-violet-500 italic">vision</span> in minutes.
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-500 to-violet-500 font-extrabold tracking-tight">vision</span> in minutes.
           </motion.h1>
 
           <motion.p 
