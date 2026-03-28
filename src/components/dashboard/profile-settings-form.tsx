@@ -28,6 +28,7 @@ const profileSchema = z.object({
 
 export function ProfileSettingsForm({ creator }: { creator: any }) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const router = useRouter();
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -87,10 +88,19 @@ export function ProfileSettingsForm({ creator }: { creator: any }) {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const formData = new FormData();
-                    formData.append("file", file);
-                    const res = await axios.post("/api/upload", formData);
-                    form.setValue("profileImage", res.data.url);
+                    try {
+                      setIsUploadingPhoto(true);
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      const res = await axios.post("/api/upload", formData);
+                      form.setValue("profileImage", res.data.url);
+                      alert("📸 Photo uploaded! Now click 'Update Portfolio' to save.");
+                    } catch (error) {
+                      console.error("Upload failed", error);
+                      alert("❌ Failed to upload photo. Check your Cloudinary keys.");
+                    } finally {
+                      setIsUploadingPhoto(false);
+                    }
                   }
                 }}
               />
@@ -101,9 +111,11 @@ export function ProfileSettingsForm({ creator }: { creator: any }) {
                 type="button"
                 variant="secondary"
                 size="icon"
+                disabled={isUploadingPhoto}
                 className="absolute -bottom-2 -right-2 h-10 w-10 rounded-xl shadow-xl bg-primary text-white hover:bg-primary/90 border-2 border-background"
+                onClick={() => document.getElementById("profile-upload")?.click()}
               >
-                <Camera className="h-5 w-5" />
+                {isUploadingPhoto ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
               </Button>
             </div>
             <div className="space-y-3 text-center md:text-left flex-1">

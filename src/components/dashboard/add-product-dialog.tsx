@@ -32,6 +32,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 export function AddProductDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [thumbPreview, setThumbPreview] = useState<string | null>(null);
   const router = useRouter();
 
   const form = useForm<ProductFormValues>({
@@ -120,15 +121,28 @@ export function AddProductDialog() {
                     type="file" 
                     accept="image/*" 
                     className="hidden" 
-                    onChange={(e) => {}}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => setThumbPreview(reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+
                   />
                   <Button 
                     type="button" 
                     variant="outline"
-                    className="w-full h-14 rounded-2xl border-2 border-dashed gap-2 font-black hover:bg-secondary/50 transition-all text-muted-foreground hover:text-primary"
+                    className="w-full h-14 rounded-2xl border-2 border-dashed gap-2 font-black hover:bg-secondary/50 transition-all text-muted-foreground hover:text-primary overflow-hidden relative"
                     onClick={() => document.getElementById("product-thumb")?.click()}
                   >
-                    <ImageIcon className="h-5 w-5" /> Cover Image
+                    {thumbPreview ? (
+                      <img src={thumbPreview} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                    ) : (
+                      <ImageIcon className="h-5 w-5" />
+                    )}
+                    <span className="relative z-10">{thumbPreview ? "Change Cover" : "Cover Image"}</span>
                   </Button>
                 </div>
               </div>
